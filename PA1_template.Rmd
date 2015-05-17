@@ -8,27 +8,26 @@ output:
 
 ## Loading and preprocessing the data
 
-```{r echo = FALSE, message= FALSE}
+```{r message= FALSE}
 library(dplyr)
 ```
 ```{r}
 activity <- read.csv("activity/activity.csv")
 activity$date <- as.POSIXct(activity$date)
-
+```
 ##Grouping data for later manipulation
+```{r}
 act_by_date <- group_by(activity, date)
 act_by_interval <- group_by(activity, interval)
-
-
 ```
 
-## What is mean total number of steps taken per day?
+## Mean total number of steps taken per day = 10766.19
+## Median total number of steps taken per day = 10765
 
 ```{r}
 total_steps_per_day <- summarize(act_by_date, sum_steps = sum(steps))
 hist(total_steps_per_day$sum_steps, xlab = "Steps per Day", main = "Total Steps")
 
-##Calculate mean and median steps per day
 total_mean <- mean(total_steps_per_day$sum_steps, na.rm = TRUE)
 total_median <- median(total_steps_per_day$sum_steps, na.rm = TRUE)
 
@@ -42,25 +41,24 @@ total_median
 ```
 
 ## What is the average daily activity pattern?
+##Peaks in average activity occur from 8:00 to 9:00 A.M., around noon and from 4:00 to 6:00 P.M..
  
 ```{r}
 mean_per_interval <- summarize(act_by_interval, imean = mean(steps, na.rm = TRUE))
  plot(mean_per_interval, type = "l")
 ```
 
-##Interval with the highest average number of steps
+##The five minute interval with the highest average number of steps is between   8:35 and 8:40 A.M.
+
 ```{r}
 top_interval <- filter(mean_per_interval, imean == max(imean))$interval
 top_interval
 ```
 
-
-## Imputing missing values
-
-##number of incomplete rows
-
+##The total number of missing values = 2304
 ```{r}
 total_incomplete <- sum(!complete.cases(activity))
+total_incomplete
 ```
 ##Missing step values are replaced by the mean of reported step values for the interval with the missing value.
 ```{r}
@@ -71,10 +69,7 @@ for(i in 1:length(indexes))
       activity[i,]$steps <- mean_per_interval[which(mean_per_interval$interval 
       == activity[i,]$interval),]$imean}
 ```
-##The total number of missing values = 2304
-```{r}
-total_incomplete
-```
+
 ##Updated histogram with missing values imputted
 ```{r}
 act_by_date <- group_by(activity, date)
@@ -83,7 +78,7 @@ hist(total_steps_per_day$sum_steps, xlab = "Steps per Day", main = "Total Steps"
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
-
+## The mean activity on weekends is spaced more evenly throughout the day.
 ```{r}
 day_type <- factor(c("weekday", "weekend"))
 activity <- mutate(activity, day_type = "weekday")
@@ -98,22 +93,16 @@ for(i in 1:length(activity$date))
 
 act_by_int_date <- group_by(activity, interval, day_type)
 
-week_ends <- filter(act_by_int_date, day_type == "weekend")
-week_days <- filter(act_by_int_date, day_type == "weekday")
-
-mean_weekend <- summarize(week_ends, imean = mean(steps, na.rm = TRUE))
-mean_weekday <- summarize(week_days, imean = mean(steps, na.rm = TRUE))
-
-combined_means <- rbind(mean_weekday, mean_weekend)
+combined_means <- summarize(act_by_int_date, imean = mean(steps))
 
 
 ```
-## Panel Plot
+## Panel plot of activity patterns for weekdays and weekends
 
 ```{r}
 library(ggplot2)
 
-wplot <- ggplot(combined_means, aes(interval, imean)) + facet_grid(day_type ~ .) + geom_line()
+wplot <- ggplot(combined_means, aes(interval, imean)) + facet_grid(day_type ~ .) + geom_line() + ylab("Mean Steps") + ggtitle("Mean Steps per Intervals for Weekends and Weekdays")
 
 wplot
 
