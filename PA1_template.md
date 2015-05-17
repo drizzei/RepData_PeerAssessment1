@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 
 
 ## Loading and preprocessing the data
@@ -28,7 +33,7 @@ total_steps_per_day <- summarize(act_by_date, sum_steps = sum(steps))
 hist(total_steps_per_day$sum_steps, xlab = "Steps per Day", main = "Total Steps")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
 
 ```r
 total_mean <- mean(total_steps_per_day$sum_steps, na.rm = TRUE)
@@ -60,7 +65,7 @@ mean_per_interval <- summarize(act_by_interval, imean = mean(steps, na.rm = TRUE
  plot(mean_per_interval, type = "l")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
 
 ##The five minute interval with the highest average number of steps is between   8:35 and 8:40 A.M.
 
@@ -103,7 +108,7 @@ total_steps_per_day <- summarize(act_by_date, sum_steps = sum(steps))
 hist(total_steps_per_day$sum_steps, xlab = "Steps per Day", main = "Total Steps")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ## The mean activity on weekends is spaced more evenly throughout the day.
@@ -135,4 +140,4 @@ wplot <- ggplot(combined_means, aes(interval, imean)) + facet_grid(day_type ~ .)
 wplot
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
