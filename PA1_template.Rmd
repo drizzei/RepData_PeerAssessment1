@@ -8,18 +8,113 @@ output:
 
 ## Loading and preprocessing the data
 
+```{r echo = FALSE, message= FALSE}
+library(dplyr)
+```
+```{r}
+activity <- read.csv("activity/activity.csv")
+activity$date <- as.POSIXct(activity$date)
 
+##Grouping data for later manipulation
+act_by_date <- group_by(activity, date)
+act_by_interval <- group_by(activity, interval)
+
+
+```
 
 ## What is mean total number of steps taken per day?
 
+```{r}
+total_steps_per_day <- summarize(act_by_date, sum_steps = sum(steps))
+hist(total_steps_per_day$sum_steps, xlab = "Steps per Day", main = "Total Steps")
 
+##Calculate mean and median steps per day
+total_mean <- mean(total_steps_per_day$sum_steps, na.rm = TRUE)
+total_median <- median(total_steps_per_day$sum_steps, na.rm = TRUE)
+
+```
+```{r}
+total_mean
+```
+```{r}
+total_median
+
+```
 
 ## What is the average daily activity pattern?
+ 
+```{r}
+mean_per_interval <- summarize(act_by_interval, imean = mean(steps, na.rm = TRUE))
+ plot(mean_per_interval, type = "l")
+```
 
+##Interval with the highest average number of steps
+```{r}
+top_interval <- filter(mean_per_interval, imean == max(imean))$interval
+top_interval
+```
 
 
 ## Imputing missing values
 
+##number of incomplete rows
 
+```{r}
+total_incomplete <- sum(!complete.cases(activity))
+```
+##Missing step values are replaced by the mean of reported step values for the interval with the missing value.
+```{r}
+indexes <- sapply(activity$steps, is.na)
+
+for(i in 1:length(indexes)) 
+  if(indexes[i]) {
+      activity[i,]$steps <- mean_per_interval[which(mean_per_interval$interval 
+      == activity[i,]$interval),]$imean}
+```
+##The total number of missing values = 2304
+```{r}
+total_incomplete
+```
+##Updated histogram with missing values imputted
+```{r}
+act_by_date <- group_by(activity, date)
+total_steps_per_day <- summarize(act_by_date, sum_steps = sum(steps))
+hist(total_steps_per_day$sum_steps, xlab = "Steps per Day", main = "Total Steps")
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+day_type <- factor(c("weekday", "weekend"))
+activity <- mutate(activity, day_type = "weekday")
+weekday <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+
+for(i in 1:length(activity$date)) 
+  {if(weekdays(activity[i,]$date) %in% weekday)
+      {activity[i,]$day_type <- "weekday"} 
+   else {
+      activity[i,]$day_type <- "weekend"}
+   }
+
+act_by_int_date <- group_by(activity, interval, day_type)
+
+week_ends <- filter(act_by_int_date, day_type == "weekend")
+week_days <- filter(act_by_int_date, day_type == "weekday")
+
+mean_weekend <- summarize(week_ends, imean = mean(steps, na.rm = TRUE))
+mean_weekday <- summarize(week_days, imean = mean(steps, na.rm = TRUE))
+
+combined_means <- rbind(mean_weekday, mean_weekend)
+
+
+```
+## Panel Plot
+
+```{r}
+library(ggplot2)
+
+wplot <- ggplot(combined_means, aes(interval, imean)) + facet_grid(day_type ~ .) + geom_line()
+
+wplot
+
+```
